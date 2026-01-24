@@ -16,7 +16,7 @@ export function AddLinkForm({ addLink }: AddLinkFormProps) {
   const [fetchedUrl, setFetchedUrl] = useState<string | null>(null);
   const userEditedTitle = useRef(false);
   const lastFetchedUrl = useRef<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const ignoreResultsRef = useRef(false);
   const isClickingSubmit = useRef(false);
 
   const handleUrlBlur = async () => {
@@ -45,17 +45,14 @@ export function AddLinkForm({ addLink }: AddLinkFormProps) {
     setHasThumbnail(false);
     setFetchedUrl(null);
 
-    // Cancel any previous fetch
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
+    // Reset flag so we'll use the results from this fetch
+    ignoreResultsRef.current = false;
 
     try {
       const data = await fetchMetadata(trimmedUrl);
 
-      // Check if we were aborted while waiting
-      if (abortControllerRef.current?.signal.aborted) {
+      // Check if we should ignore these results (form was submitted or URL changed)
+      if (ignoreResultsRef.current) {
         return;
       }
 
@@ -67,14 +64,13 @@ export function AddLinkForm({ addLink }: AddLinkFormProps) {
       setHasThumbnail(data.hasThumbnail);
       setFetchedUrl(trimmedUrl);
     } catch (error) {
-      if (abortControllerRef.current?.signal.aborted) {
-        // Fetch was cancelled, ignore
+      if (ignoreResultsRef.current) {
+        // Results should be ignored
         return;
       }
       console.error("Failed to fetch metadata:", error);
     } finally {
       setIsLoading(false);
-      abortControllerRef.current = null;
     }
   };
 
@@ -98,11 +94,8 @@ export function AddLinkForm({ addLink }: AddLinkFormProps) {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    // Cancel any pending metadata fetch
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
+    // Tell any in-flight fetch to ignore its results
+    ignoreResultsRef.current = true;
 
     await addLink(formData);
 
