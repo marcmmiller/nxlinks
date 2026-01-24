@@ -3,7 +3,10 @@ import { UrlMetadata } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
-const APIFLASH_ACCESS_KEY = "2e5500c9b1a94309aed37108b237d2f2";
+const APIFLASH_ACCESS_KEY = process.env.APIFLASH_ACCESS_KEY;
+if (!APIFLASH_ACCESS_KEY) {
+  throw new Error("APIFLASH_ACCESS_KEY environment variable is not set");
+}
 
 async function fetchTitleFromHtmlUrl(url: string): Promise<string | null> {
   console.log(`[apiflash] Fetching HTML from: ${url}`);
