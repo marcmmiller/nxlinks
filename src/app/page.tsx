@@ -3,8 +3,7 @@ import { getAllLinks } from "@/data";
 import { logout } from "@/actions/auth";
 import { addLink } from "@/actions/links";
 import { AddLinkForm } from "./AddLinkForm";
-import { RemoveButton } from "./RemoveButton";
-import { Thumbnail } from "./Thumbnail";
+import { LinkCard } from "./LinkCard";
 
 export default async function Home() {
   const allLinks = await getAllLinks();
@@ -33,27 +32,7 @@ export default async function Home() {
         ) : (
           <ul className={styles.linkList}>
             {allLinks.map((link) => (
-              <li key={link.id} className={styles.linkItem}>
-                <Thumbnail url={link.url} className={styles.thumbnail} />
-                <div className={styles.linkContent}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.linkUrl}
-                  >
-                    {link.title ??
-                      link.metadataTitle ??
-                      link.url.replace(/^https?:\/\//, "")}
-                  </a>
-                  {link.created && (
-                    <span className={styles.linkDate}>
-                      {link.created.toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                <RemoveButton linkId={link.id} />
-              </li>
+              <LinkCard key={link.id} link={link} />
             ))}
           </ul>
         )}
