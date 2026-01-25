@@ -51,7 +51,7 @@ async function fetchMetadataFromUrl(
 ): Promise<{ title: string | null; thumbnail: Buffer | null }> {
   // Call apiflash API to get thumbnail and HTML URLs
   const apiUrl = new URL("https://api.apiflash.com/v1/urltoimage");
-  apiUrl.searchParams.set("access_key", APIFLASH_ACCESS_KEY);
+  apiUrl.searchParams.set("access_key", APIFLASH_ACCESS_KEY!);
   apiUrl.searchParams.set("url", url);
   apiUrl.searchParams.set("response_type", "json");
   apiUrl.searchParams.set("extract_html", "true");
