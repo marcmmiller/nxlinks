@@ -13,6 +13,7 @@
     "update-api": "npx @hey-api/openapi-ts -i http://localhost:8000/openapi.json -o ./src/lib/api"
   },
   "dependencies": {
+    "arctic": "^3.7.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "jose": "^6.1.3",
