@@ -26,19 +26,23 @@ export function LinkCard({ link }: LinkCardProps) {
 
   useEffect(() => {
     let cancelled = false;
+    let blobUrl: string | null = null;
 
     async function loadThumbnail() {
       setThumbnailStatus("loading");
       const src = `/api/thumbnail?url=${encodeURIComponent(link.url)}`;
 
-      // First, check if the thumbnail exists (HEAD request to avoid double-fetching)
-      const response = await fetch(src, { method: "HEAD" });
+      // Fetch the thumbnail
+      const response = await fetch(src);
 
       if (cancelled) return;
 
       if (response.ok) {
-        // Thumbnail exists, display it
-        setThumbnailSrc(src);
+        // Convert response to blob and create object URL
+        const blob = await response.blob();
+        if (cancelled) return;
+        blobUrl = URL.createObjectURL(blob);
+        setThumbnailSrc(blobUrl);
         setThumbnailStatus("loaded");
         return;
       }
@@ -56,10 +60,17 @@ export function LinkCard({ link }: LinkCardProps) {
           }
 
           if (data.hasThumbnail) {
-            // Now the thumbnail should be available
-            setThumbnailSrc(src + "&t=" + Date.now()); // Cache bust
-            setThumbnailStatus("loaded");
-            return;
+            // Now fetch the thumbnail
+            const thumbnailResponse = await fetch(src);
+            if (cancelled) return;
+            if (thumbnailResponse.ok) {
+              const blob = await thumbnailResponse.blob();
+              if (cancelled) return;
+              blobUrl = URL.createObjectURL(blob);
+              setThumbnailSrc(blobUrl);
+              setThumbnailStatus("loaded");
+              return;
+            }
           }
         } catch (error) {
           console.error("Failed to fetch metadata:", error);
@@ -74,6 +85,10 @@ export function LinkCard({ link }: LinkCardProps) {
 
     return () => {
       cancelled = true;
+      // Clean up blob URL to avoid memory leaks
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
     };
   }, [link.url, link.title]);
 
